@@ -14,12 +14,14 @@
   }
   
   /* 헤더 왼쪽 영역 스타일 설정 */
-  .header-left h1 {
+  .header-left h2 {
+    padding: 20px; /* 패딩 설정 */
     margin: 0; /* 마진 제거 */
   }
   
   /* 헤더 오른쪽 영역 스타일 설정 */
   .header-right {
+    padding: 20px; /* 패딩 설정 */
     font-size: 16px; /* 폰트 크기 설정 */
   }
   

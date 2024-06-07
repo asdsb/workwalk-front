@@ -9,12 +9,13 @@ import Header from './components/Header.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import NotFound from './components/NotFound.jsx';
 
-import './css/Home.css'
-import './css/app.css'
-import './css/Header.css'
-import './css/sidebar.css'
-
-
+import './css/app.css';
+import './css/home.css';
+import './css/header.css';
+import './css/sidebar.css';
+import './css/employee.css';
+import './css/workdashboard.css';
+import './css/dailywork.css';
 
 const App = () => {
   return (

@@ -5,6 +5,8 @@ html, body, #root {
     padding: 0;
     font-family: Arial, sans-serif; /* 폰트 설정 */
   }
+
+  
   
   /* 사이드바 스타일 설정 */
   .sidebar {
