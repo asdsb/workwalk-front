@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 const Employee = () => {
     const [data, setData] = useState([]);
@@ -13,16 +14,28 @@ const Employee = () => {
     const [newEmployee, setNewEmployee] = useState({ name: '', department: '', phone: '' });
     const [errorMessage, setErrorMessage] = useState('');
 
+    // 데이터 변환 함수
+    const transformData = (data) => {
+        return data.map(item => ({
+            name: item.USER_NM,
+            key: item.USER_KEY_CD,
+            date: item.REG_YMD,
+            department: item.DEPT_NM,
+            phone: item.HP_NUM
+        }));
+    };
+
     // 데이터 불러오기 함수
     const fetchData = async () => {
         try {
-            const response = await fetch('/data/employeeData.json');
-            const result = await response.json();
-            result.sort((a, b) => new Date(b.date) - new Date(a.date)); // 등록일 기준으로 최신 순 정렬
-            setData(result);
-            setFilteredData(result);
+            const response = await axios.get('http://localhost:3000/employee');
+            const result = await response.data;
+            const transformedData = transformData(result);
+            transformedData.sort((a, b) => new Date(b.date) - new Date(a.date)); // 등록일 기준으로 최신 순 정렬
+            setData(transformedData);
+            setFilteredData(transformedData);
 
-            const deptSet = new Set(result.map(item => item.department));
+            const deptSet = new Set(transformedData.map(item => item.department));
             setDepartments(['전체', ...deptSet]);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -101,9 +114,9 @@ const Employee = () => {
         }));
     };
 
-    const validatePhoneNumber = (phone) => {
+    const validatePhoneNumber = (콜) => {
         const phonePattern = /^010-\d{4}-\d{4}$/;
-        return phonePattern.test(phone);
+        return phonePattern.test(콜);
     };
 
     const handleRegister = () => {

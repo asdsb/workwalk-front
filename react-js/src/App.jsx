@@ -17,6 +17,7 @@ import './css/employee.css';
 import './css/workdashboard.css';
 import './css/dailywork.css';
 
+
 const App = () => {
   return (
     <Router>
@@ -28,6 +29,7 @@ const App = () => {
 const AppContent = () => {
   const location = useLocation();
   const noHeaderPaths = ["/", "*"];
+
 
   return (
     <>
