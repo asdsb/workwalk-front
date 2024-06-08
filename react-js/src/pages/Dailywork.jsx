@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
 
 const Dailywork = () => {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -11,11 +13,22 @@ const Dailywork = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
 
+    // 데이터 변환 함수
+    const transformData = (data) => {
+        return data.map(item => ({
+            date: item.DATE_YMD,
+            nickname: item.Employee.USER_NM, // fk로 이름 불러오기
+            status: item.FIN_FLG === 0 ? "근무 중" : "퇴근", // 업무 상태에 맞게 글로 변환
+            totalTime: item.TIME_DT,
+            reportStatus: item.FIN_FLG === 0 ? "수집 중" : "생성 완료" // 0이면 수집 중 1이면 생성 완료
+        }));
+    };
+
     useEffect(() => {
         // 비동기적으로 데이터 가져오기
         const fetchData = async () => {
-            const response = await fetch('/data/dummyData.json'); // 더미 데이터 파일 경로
-            const result = await response.json();
+            const response = await axios.get('http://localhost:3000/work');
+            const result = await transformData(response.data);
             setData(result); // 가져온 데이터로 상태 업데이트
             filterDataByDate(result, selectedDate); // 초기 데이터 필터링
         };
@@ -23,20 +36,20 @@ const Dailywork = () => {
         fetchData();
     }, [selectedDate]); // selectedDate가 변경될 때마다 fetchData 호출
 
-    useEffect(() => {
-        // 비동기적으로 employeeData 가져오기
-        const fetchEmployeeData = async () => {
-            const response = await fetch('/data/employeeData.json');
-            const result = await response.json();
-            const info = {};
-            result.forEach(emp => {
-                info[emp.name] = { department: emp.department, phone: emp.phone };
-            });
-            setEmployeeInfo(info);
-        };
+    // useEffect(() => {
+    //     // 비동기적으로 employeeData 가져오기
+    //     const fetchEmployeeData = async () => {
+    //         const response = await fetch('/data/employeeData.json');
+    //         const result = await response.json();
+    //         const info = {};
+    //         result.forEach(emp => {
+    //             info[emp.name] = { department: emp.department, phone: emp.phone };
+    //         });
+    //         setEmployeeInfo(info);
+    //     };
 
-        fetchEmployeeData();
-    }, []);
+    //     fetchEmployeeData();
+    // }, []);
 
     const handleDateChange = (e) => {
         const newDate = e.target.value;

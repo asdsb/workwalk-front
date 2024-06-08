@@ -119,7 +119,7 @@ const Employee = () => {
         return phonePattern.test(콜);
     };
 
-    const handleRegister = () => {
+    const handleRegister = async () => {
         if (!validatePhoneNumber(newEmployee.phone)) {
             setErrorMessage('휴대전화 형식이 올바르지 않습니다. 010-1234-5678 형식으로 입력하세요.');
             return;
@@ -127,7 +127,7 @@ const Employee = () => {
 
         const newEntry = {
             ...newEmployee,
-            key: Math.random().toString(36).substr(2, 9).toUpperCase(),
+            key: Math.random().toString(36).substr(2, 8).toUpperCase(),
             date: new Date().toISOString().split('T')[0]
         };
 
@@ -150,6 +150,20 @@ const Employee = () => {
 
         if (!departments.includes(newEntry.department)) {
             setDepartments(prevDepts => [...prevDepts, newEntry.department]);
+        }
+
+        const transformedEntry = {
+            USER_NM: newEntry.name,
+            USER_KEY_CD: newEntry.key,
+            DEPT_NM: newEntry.department,
+            HP_NUM: newEntry.phone
+        };
+
+        try {
+            await axios.post('http://localhost:3000/employee', transformedEntry);
+            fetchData();
+        } catch (error) {
+            console.error('Error posting data:', error);
         }
 
         setModalOpen(false);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Select from 'react-select';
+import axios from 'axios';
 
 const Management = () => {
   const [tasks, setTasks] = useState({});
@@ -22,6 +23,20 @@ const Management = () => {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const dropdownRef = useRef(null);
 
+  // 데이터 변환 함수
+  const transformData = (data) => {
+    return data.map(item => ({
+        ticketIdx: item.TICKET_IDX,
+        userKeyCd: item.USER_KEY_CD,
+        titleStr: item.TITLE_STR,
+        dateStYmd: item.DATE_ST_YMD,
+        dateEndYmd: item.DATE_END_YMD,
+        contentStr: item.CONTENT_STR,
+        managerStr: item.MANAGER_STR,
+        statusFlg: item.STATUS_FLG
+    }));
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -38,8 +53,8 @@ const Management = () => {
   useEffect(() => {
     const fetchEmployeeData = async () => {
       try {
-        const response = await fetch('./public/data/ticketemployee.json'); // 실제 경로로 변경
-        const data = await response.json();
+        const response = await axios.get('http://localhost:3000/employee');
+        const data = await response.data;
         setEmployeeData(data);
       } catch (error) {
         console.error('Failed to fetch employee data:', error);
@@ -48,8 +63,8 @@ const Management = () => {
 
     const fetchTicketData = async () => {
       try {
-        const response = await fetch('./public/data/ticketData.json'); // 실제 경로로 변경
-        const data = await response.json();
+        const response = await axios.get('http://localhost:3000/ticket'); // 실제 경로로 변경
+        const data = await transformData(response.data);
         setTicketData(data);
       } catch (error) {
         console.error('Failed to fetch ticket data:', error);
@@ -136,15 +151,21 @@ const Management = () => {
     setConfirmDelete(true);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const { employee, status, index } = currentTask;
     const newTasks = { ...tasks };
-    newTasks[employee][status].splice(index, 1);
-    setTasks(newTasks);
-    closeModal();
+    const [task] = newTasks[employee][status].splice(index, 1);
+
+    try {
+      await axios.delete(`http://localhost:3000/ticket/${task.ticketIdx}`); // 서버에 DELETE 요청
+      setTasks(newTasks);
+      closeModal();
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+    }
   };
 
-  const saveTask = () => {
+  const saveTask = async () => {
     const { employee, status, index } = currentTask;
     const newTasks = { ...tasks };
 
@@ -155,11 +176,28 @@ const Management = () => {
     task.dateEndYmd = modalContent.dateEnd;
     task.managerStr = modalContent.reviewers.map(reviewer => reviewer.value).join(',');
     task.contentStr = modalContent.description;
+    task.statusFlg = modalContent.status === 'notStarted' ? 0 : modalContent.status === 'inProgress' ? 1 : 2;
 
     newTasks[employee][modalContent.status].push(task);
 
-    setTasks(newTasks);
-    closeModal();
+    const tftask = {
+      TICKET_IDX: task.ticketIdx,
+      USER_KEY_CD: task.userKeyCd,
+      TITLE_STR: task.titleStr,
+      DATE_ST_YMD: task.dateStYmd,
+      DATE_END_YMD: task.dateEndYmd,
+      CONTENT_STR: task.contentStr,
+      MANAGER_STR: task.managerStr,
+      STATUS_FLG: task.statusFlg
+    };
+
+    try {
+      await axios.put(`http://localhost:3000/ticket/${tftask.TICKET_IDX}`, tftask); // 서버에 PUT 요청
+      setTasks(newTasks);
+      closeModal();
+    } catch (error) {
+      console.error('Failed to update task:', error);
+    }
   };
 
   const openNewTaskModal = (employee, status) => {
@@ -176,10 +214,11 @@ const Management = () => {
     document.body.style.overflow = 'hidden'; // 배경 스크롤 막기
   };
 
-  const registerNewTask = () => {
+  const registerNewTask = async () => {
     const { employee } = currentTask;
     const { status } = modalContent;
     if (isFormValid) {
+      const selectedEmployee = employeeData.find(emp => emp.USER_NM === employee);
       const newTask = {
         titleStr: modalContent.title,
         dateStYmd: modalContent.dateStart,
@@ -188,8 +227,28 @@ const Management = () => {
         contentStr: modalContent.description,
         statusFlg: status === 'notStarted' ? 0 : status === 'inProgress' ? 1 : 2,
       };
-      addTask(employee, status, newTask);
-      closeModal();
+
+      const tfnewTask = {
+        USER_KEY_CD: selectedEmployee.USER_KEY_CD,
+        TITLE_STR: newTask.titleStr,
+        DATE_ST_YMD: newTask.dateStYmd,
+        DATE_END_YMD: newTask.dateEndYmd,
+        CONTENT_STR: newTask.contentStr,
+        MANAGER_STR: newTask.managerStr,
+        STATUS_FLG: newTask.statusFlg
+      };
+
+      try {
+        const response = await axios.post('http://localhost:3000/ticket', tfnewTask);
+        const createdTask = {
+          ...tfnewTask,
+          TICKET_IDX: response.data.TICKET_IDX // 서버에서 반환한 새 티켓 ID
+        };
+          addTask(employee, status, createdTask);
+          closeModal();
+      } catch (error) {
+          console.error('Failed to create new task:', error);
+      }
     }
   };
 
