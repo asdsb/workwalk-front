@@ -10,6 +10,7 @@ html, body, #root {
   
   /* 사이드바 스타일 설정 */
   .sidebar {
+    
     height: calc(100vh - 50px); /* Viewport Height를 100%로 설정하여 창 높이에 맞춤, 헤더 높이를 제외 */
     width: 200px; /* 사이드바 너비 설정 */
     background-color: #ecf0f1; /* 배경색 설정 */
@@ -22,12 +23,14 @@ html, body, #root {
   
   /* 네비게이션 스타일 설정 */
   .sidebar nav {
+    margin-top: 20px;
     display: flex; /* 플렉스 박스 설정 */
     flex-direction: column; /* 세로 방향으로 정렬 */
   }
   
   /* 메뉴 섹션 스타일 설정 */
   .menu-section {
+    
     margin-bottom: 20px; /* 메뉴 섹션 간의 간격 설정 */
   }
   

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Select from 'react-select';
 
 const Management = () => {
   const [tasks, setTasks] = useState({});
@@ -9,8 +10,7 @@ const Management = () => {
     dateStart: '',
     dateEnd: '',
     status: 'notStarted',
-    assignee: '',
-    reviewer: '',
+    reviewers: [],
     description: '',
   });
   const [newTaskModalOpen, setNewTaskModalOpen] = useState(false);
@@ -19,6 +19,7 @@ const Management = () => {
   const [employeeData, setEmployeeData] = useState([]);
   const [ticketData, setTicketData] = useState([]);
   const [isFormValid, setIsFormValid] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -60,8 +61,8 @@ const Management = () => {
   }, []);
 
   useEffect(() => {
-    const { title, dateStart, dateEnd, reviewer, description } = modalContent;
-    setIsFormValid(title && dateStart && dateEnd && reviewer && description);
+    const { title, dateStart, dateEnd, reviewers, description } = modalContent;
+    setIsFormValid(title && dateStart && dateEnd && reviewers.length > 0 && description);
   }, [modalContent]);
 
   const mapTicketsToTasks = (selectedEmployee) => {
@@ -117,16 +118,30 @@ const Management = () => {
       dateStart: task.dateStYmd,
       dateEnd: task.dateEndYmd,
       status: status,
-      assignee: employee,
-      reviewer: task.managerStr,
+      reviewers: task.managerStr.split(',').map(name => ({ label: name, value: name })),
       description: task.contentStr,
     });
     setModalOpen(true);
+    document.body.style.overflow = 'hidden'; // 배경 스크롤 막기
   };
 
   const closeModal = () => {
     setModalOpen(false);
     setNewTaskModalOpen(false);
+    setConfirmDelete(false); // 삭제 확인 초기화
+    document.body.style.overflow = 'auto'; // 배경 스크롤 허용
+  };
+
+  const confirmDeleteTask = () => {
+    setConfirmDelete(true);
+  };
+
+  const handleDelete = () => {
+    const { employee, status, index } = currentTask;
+    const newTasks = { ...tasks };
+    newTasks[employee][status].splice(index, 1);
+    setTasks(newTasks);
+    closeModal();
   };
 
   const saveTask = () => {
@@ -138,19 +153,11 @@ const Management = () => {
     task.titleStr = modalContent.title;
     task.dateStYmd = modalContent.dateStart;
     task.dateEndYmd = modalContent.dateEnd;
-    task.managerStr = modalContent.reviewer;
+    task.managerStr = modalContent.reviewers.map(reviewer => reviewer.value).join(',');
     task.contentStr = modalContent.description;
 
     newTasks[employee][modalContent.status].push(task);
 
-    setTasks(newTasks);
-    closeModal();
-  };
-
-  const deleteTask = () => {
-    const { employee, status, index } = currentTask;
-    const newTasks = { ...tasks };
-    newTasks[employee][status].splice(index, 1);
     setTasks(newTasks);
     closeModal();
   };
@@ -162,17 +169,26 @@ const Management = () => {
       dateStart: '',
       dateEnd: '',
       status: status,
-      assignee: employee,
-      reviewer: '',
+      reviewers: [],
       description: '',
     });
     setNewTaskModalOpen(true);
+    document.body.style.overflow = 'hidden'; // 배경 스크롤 막기
   };
 
   const registerNewTask = () => {
-    const { employee, status } = currentTask;
+    const { employee } = currentTask;
+    const { status } = modalContent;
     if (isFormValid) {
-      addTask(employee, status, modalContent);
+      const newTask = {
+        titleStr: modalContent.title,
+        dateStYmd: modalContent.dateStart,
+        dateEndYmd: modalContent.dateEnd,
+        managerStr: modalContent.reviewers.map(reviewer => reviewer.value).join(','),
+        contentStr: modalContent.description,
+        statusFlg: status === 'notStarted' ? 0 : status === 'inProgress' ? 1 : 2,
+      };
+      addTask(employee, status, newTask);
       closeModal();
     }
   };
@@ -191,6 +207,13 @@ const Management = () => {
       ...prevContent,
       [name]: value,
       dateEnd: name === 'dateStart' && modalContent.dateEnd === '' ? value : modalContent.dateEnd,
+    }));
+  };
+
+  const handleReviewersChange = (selectedOptions) => {
+    setModalContent(prevContent => ({
+      ...prevContent,
+      reviewers: selectedOptions
     }));
   };
 
@@ -299,7 +322,7 @@ const Management = () => {
         <div className="management-modal-overlay">
           <div className="management-modal">
             <div className="modal-header">
-              <h3>업무 수정</h3>
+              <h3>{`${currentTask.employee} 담당 업무 수정`}</h3>
             </div>
             <div className="modal-content">
               <div className="form-group">
@@ -345,24 +368,15 @@ const Management = () => {
                 </select>
               </div>
               <div className="form-group">
-                <label>담당자</label>
-                <input
-                  type="text"
-                  name="assignee"
-                  placeholder="담당자"
-                  value={modalContent.assignee}
-                  onChange={handleInputChange}
-                  readOnly
-                />
-              </div>
-              <div className="form-group">
                 <label>검토자</label>
-                <input
-                  type="text"
-                  name="reviewer"
-                  placeholder="검토자"
-                  value={modalContent.reviewer}
-                  onChange={handleInputChange}
+                <Select
+                  isMulti
+                  name="reviewers"
+                  options={employeeData.map(employee => ({ label: employee.USER_NM, value: employee.USER_NM }))}
+                  className="basic-multi-select"
+                  classNamePrefix="select"
+                  value={modalContent.reviewers}
+                  onChange={handleReviewersChange}
                 />
               </div>
               <div className="form-group">
@@ -379,9 +393,20 @@ const Management = () => {
             <div className="modal-buttons">
               <button onClick={closeModal}>취소</button>
               <button onClick={saveTask}>수정</button>
-              <button onClick={deleteTask}>삭제</button>
+              <button onClick={confirmDeleteTask}>삭제</button>
             </div>
           </div>
+          {confirmDelete && (
+            <div className="delete-confirmation-overlay">
+              <div className="delete-confirmation-modal">
+                <p>정말로 삭제하시겠습니까?</p>
+                <div className="delete-confirmation-buttons">
+                  <button onClick={handleDelete}>예</button>
+                  <button onClick={() => setConfirmDelete(false)}>아니요</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -389,7 +414,7 @@ const Management = () => {
         <div className="management-modal-overlay">
           <div className="management-modal">
             <div className="modal-header">
-              <h3>업무 등록</h3>
+              <h3>{`${currentTask.employee} 담당 업무 등록`}</h3>
             </div>
             <div className="modal-content">
               <div className="form-group">
@@ -435,24 +460,15 @@ const Management = () => {
                 </select>
               </div>
               <div className="form-group">
-                <label>담당자</label>
-                <input
-                  type="text"
-                  name="assignee"
-                  placeholder="담당자"
-                  value={modalContent.assignee}
-                  onChange={handleInputChange}
-                  readOnly
-                />
-              </div>
-              <div className="form-group">
                 <label>검토자</label>
-                <input
-                  type="text"
-                  name="reviewer"
-                  placeholder="검토자"
-                  value={modalContent.reviewer}
-                  onChange={handleInputChange}
+                <Select
+                  isMulti
+                  name="reviewers"
+                  options={employeeData.map(employee => ({ label: employee.USER_NM, value: employee.USER_NM }))}
+                  className="basic-multi-select"
+                  classNamePrefix="select"
+                  value={modalContent.reviewers}
+                  onChange={handleReviewersChange}
                 />
               </div>
               <div className="form-group">
