@@ -11,15 +11,23 @@ const Management = () => {
 
   const [currentTask, setCurrentTask] = useState({ employee: '', status: '', index: -1 });
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState('');
+  const [modalContent, setModalContent] = useState({
+    title: '',
+    dateStart: '',
+    dateEnd: '',
+    status: '시작 전',
+    assignee: '',
+    reviewer: '',
+    description: '',
+  });
   const [newTaskModalOpen, setNewTaskModalOpen] = useState(false);
 
-  const addTask = (employee, status, taskText) => {
+  const addTask = (employee, status, task) => {
     setTasks(prevTasks => ({
       ...prevTasks,
       [employee]: {
         ...prevTasks[employee],
-        [status]: [...prevTasks[employee][status], taskText || 'Untitled']
+        [status]: [...prevTasks[employee][status], task]
       }
     }));
   };
@@ -31,8 +39,17 @@ const Management = () => {
   };
 
   const openModal = (employee, status, index) => {
+    const task = tasks[employee][status][index];
     setCurrentTask({ employee, status, index });
-    setModalText(tasks[employee][status][index]);
+    setModalContent({
+      title: task.title,
+      dateStart: task.dateStart,
+      dateEnd: task.dateEnd,
+      status: status,
+      assignee: employee,
+      reviewer: task.reviewer,
+      description: task.description,
+    });
     setModalOpen(true);
   };
 
@@ -44,7 +61,20 @@ const Management = () => {
   const saveTask = () => {
     const { employee, status, index } = currentTask;
     const newTasks = { ...tasks };
-    newTasks[employee][status][index] = modalText;
+
+    // Remove task from its current status
+    const [task] = newTasks[employee][status].splice(index, 1);
+
+    // Update task details
+    task.title = modalContent.title;
+    task.dateStart = modalContent.dateStart;
+    task.dateEnd = modalContent.dateEnd;
+    task.reviewer = modalContent.reviewer;
+    task.description = modalContent.description;
+
+    // Add task to its new status
+    newTasks[employee][modalContent.status].push(task);
+
     setTasks(newTasks);
     closeModal();
   };
@@ -59,14 +89,39 @@ const Management = () => {
 
   const openNewTaskModal = (employee, status) => {
     setCurrentTask({ employee, status, index: -1 });
-    setModalText('');
+    setModalContent({
+      title: '',
+      dateStart: '',
+      dateEnd: '',
+      status: '시작 전',
+      assignee: employee,
+      reviewer: '',
+      description: '',
+    });
     setNewTaskModalOpen(true);
   };
 
   const registerNewTask = () => {
     const { employee, status } = currentTask;
-    addTask(employee, status, modalText);
+    addTask(employee, status, modalContent);
     closeModal();
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setModalContent(prevContent => ({
+      ...prevContent,
+      [name]: value
+    }));
+  };
+
+  const handleDateInputChange = (e) => {
+    const { name, value } = e.target;
+    setModalContent(prevContent => ({
+      ...prevContent,
+      [name]: value,
+      dateEnd: name === 'dateStart' && modalContent.dateEnd === '' ? value : modalContent.dateEnd,
+    }));
   };
 
   return (
@@ -98,7 +153,7 @@ const Management = () => {
                       className="task"
                       onClick={() => openModal(employee, 'notStarted', index)}
                     >
-                      {task}
+                      {task.title}
                     </div>
                   ))}
                   <div className="task new-task" onClick={() => openNewTaskModal(employee, 'notStarted')}>
@@ -112,7 +167,7 @@ const Management = () => {
                       className="task"
                       onClick={() => openModal(employee, 'inProgress', index)}
                     >
-                      {task}
+                      {task.title}
                     </div>
                   ))}
                   <div className="task new-task" onClick={() => openNewTaskModal(employee, 'inProgress')}>
@@ -126,7 +181,7 @@ const Management = () => {
                       className="task"
                       onClick={() => openModal(employee, 'completed', index)}
                     >
-                      {task}
+                      {task.title}
                     </div>
                   ))}
                   <div className="task new-task" onClick={() => openNewTaskModal(employee, 'completed')}>
@@ -142,9 +197,56 @@ const Management = () => {
       {modalOpen && (
         <div className="modal-overlay">
           <div className="modal">
+            <input
+              type="text"
+              name="title"
+              placeholder="제목"
+              value={modalContent.title}
+              onChange={handleInputChange}
+            />
+            <input
+              type="date"
+              name="dateStart"
+              placeholder="시작일"
+              value={modalContent.dateStart}
+              onChange={handleDateInputChange}
+            />
+            <input
+              type="date"
+              name="dateEnd"
+              placeholder="종료일"
+              value={modalContent.dateEnd}
+              onChange={handleInputChange}
+            />
+            <select
+              name="status"
+              value={modalContent.status}
+              onChange={handleInputChange}
+            >
+              <option value="notStarted">시작 전</option>
+              <option value="inProgress">진행 중</option>
+              <option value="completed">완료</option>
+            </select>
+            <input
+              type="text"
+              name="assignee"
+              placeholder="담당자"
+              value={modalContent.assignee}
+              onChange={handleInputChange}
+              readOnly
+            />
+            <input
+              type="text"
+              name="reviewer"
+              placeholder="검토자"
+              value={modalContent.reviewer}
+              onChange={handleInputChange}
+            />
             <textarea
-              value={modalText}
-              onChange={(e) => setModalText(e.target.value)}
+              name="description"
+              placeholder="설명"
+              value={modalContent.description}
+              onChange={handleInputChange}
             />
             <div className="modal-buttons">
               <button onClick={closeModal}>취소</button>
@@ -158,10 +260,56 @@ const Management = () => {
       {newTaskModalOpen && (
         <div className="modal-overlay">
           <div className="modal">
+            <input
+              type="text"
+              name="title"
+              placeholder="제목"
+              value={modalContent.title}
+              onChange={handleInputChange}
+            />
+            <input
+              type="date"
+              name="dateStart"
+              placeholder="시작일"
+              value={modalContent.dateStart}
+              onChange={handleDateInputChange}
+            />
+            <input
+              type="date"
+              name="dateEnd"
+              placeholder="종료일"
+              value={modalContent.dateEnd}
+              onChange={handleInputChange}
+            />
+            <select
+              name="status"
+              value={modalContent.status}
+              onChange={handleInputChange}
+            >
+              <option value="notStarted">시작 전</option>
+              <option value="inProgress">진행 중</option>
+              <option value="completed">완료</option>
+            </select>
+            <input
+              type="text"
+              name="assignee"
+              placeholder="담당자"
+              value={modalContent.assignee}
+              onChange={handleInputChange}
+              readOnly
+            />
+            <input
+              type="text"
+              name="reviewer"
+              placeholder="검토자"
+              value={modalContent.reviewer}
+              onChange={handleInputChange}
+            />
             <textarea
-              value={modalText}
-              onChange={(e) => setModalText(e.target.value)}
-              placeholder="New Task"
+              name="description"
+              placeholder="설명"
+              value={modalContent.description}
+              onChange={handleInputChange}
             />
             <div className="modal-buttons">
               <button onClick={closeModal}>취소</button>

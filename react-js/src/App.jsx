@@ -14,7 +14,7 @@ import './css/home.css';
 import './css/header.css';
 import './css/sidebar.css';
 import './css/employee.css';
-import './css/workdashboard.css';
+import './css/management.css';
 import './css/dailywork.css';
 
 
