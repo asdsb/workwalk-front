@@ -5,36 +5,74 @@
   box-sizing: border-box;
 }
 
-.task-status-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.status-label {
-  flex: 1;
-  padding: 10px;
-  text-align: center;
-  font-weight: bold;
-  border-radius: 5px;
-}
-
-.status-label.not-started {
-  background-color: #d3d3d3;
-}
-
-.status-label.in-progress {
-  background-color: #add8e6;
-}
-
-.status-label.completed {
-  background-color: #90ee90;
-}
-
 .management-content {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.employee-selection-container {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown-button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.dropdown-item {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f1f1;
+}
+
+.selected-employees {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.selected-employee {
+  display: flex;
+  align-items: center;
+  padding: 5px 10px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.selected-employee .remove-button {
+  margin-left: 10px;
+  background-color: transparent;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
 }
 
 .employee-tasks-name {
@@ -101,7 +139,7 @@
   margin-top: 10px;
 }
 
-.modal-overlay {
+.management-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -113,31 +151,62 @@
   align-items: center;
 }
 
-.modal {
+.management-modal {
   background-color: #fff;
   padding: 20px;
   border-radius: 5px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 15px;
   width: 400px;
 }
 
-.modal input,
-.modal select,
-.modal textarea {
+.management-modal h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.management-modal .modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.management-modal .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.management-modal input,
+.management-modal select,
+.management-modal textarea {
   width: 100%;
-  padding: 10px;
-  border-radius: 5px;
+  padding: 8px;
+  margin-top: 5px;
   border: 1px solid #ccc;
+  border-radius: 5px;
   box-sizing: border-box;
+}
+
+.management-modal .date-range {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.management-modal .date-range input {
+  flex: 1;
+}
+
+.management-modal .date-separator {
+  flex-shrink: 0;
 }
 
 .modal-buttons {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  justify-content: space-between;
 }
 
 .modal-buttons button {

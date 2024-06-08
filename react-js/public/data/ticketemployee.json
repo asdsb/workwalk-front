@@ -1,0 +1,33 @@
+[
+    {
+      "USER_KEY_CD": "AADS1251",
+      "USER_NM": "민경훈",
+      "DEPT_NM": "백엔드",
+      "HP_NUM": "010-5130-3757"
+    },
+    {
+      "USER_KEY_CD": "BBDS1252",
+      "USER_NM": "정효린",
+      "DEPT_NM": "프론트엔드",
+      "HP_NUM": "010-1234-5678"
+    },
+    {
+      "USER_KEY_CD": "CCDS1253",
+      "USER_NM": "변정욱",
+      "DEPT_NM": "디자인",
+      "HP_NUM": "010-8765-4321"
+    },
+    {
+      "USER_KEY_CD": "DDDS1254",
+      "USER_NM": "김승호",
+      "DEPT_NM": "기획",
+      "HP_NUM": "010-1111-2222"
+    },
+    {
+      "USER_KEY_CD": "EEDS1255",
+      "USER_NM": "고효영",
+      "DEPT_NM": "테스트",
+      "HP_NUM": "010-3333-4444"
+    }
+  ]
+  
