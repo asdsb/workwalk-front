@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
 
 const Dailywork = () => {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -11,11 +13,20 @@ const Dailywork = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
 
+    const transformData = (data) => {
+        return data.map(item => ({
+            date: item.DATE_YMD,
+            nickname: item.USER_KEY_CD, // fk로 이름 불러오기
+            status: item.FIN_FLG, // 업무 상태에 맞게
+            totalTime: item.TIME_DT,
+            reportStatus: item.FIN_FLG // 0이면 생성중 1이면 완료
+        }));
+    };
     useEffect(() => {
         // 비동기적으로 데이터 가져오기
         const fetchData = async () => {
-            const response = await fetch('/data/dummyData.json'); // 더미 데이터 파일 경로
-            const result = await response.json();
+            const response = await axios.get('http://localhost:3000/work');
+            const result = await transformData(response.data);
             setData(result); // 가져온 데이터로 상태 업데이트
             filterDataByDate(result, selectedDate); // 초기 데이터 필터링
         };
