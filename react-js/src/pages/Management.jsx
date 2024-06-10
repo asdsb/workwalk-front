@@ -23,7 +23,6 @@ const Management = () => {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const dropdownRef = useRef(null);
 
-  // 데이터 변환 함수
   const transformData = (data) => {
     return data.map(item => ({
         ticketIdx: item.TICKET_IDX,
@@ -63,7 +62,7 @@ const Management = () => {
 
     const fetchTicketData = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/ticket'); // 실제 경로로 변경
+        const response = await axios.get('http://localhost:3000/ticket');
         const data = await transformData(response.data);
         setTicketData(data);
       } catch (error) {
@@ -137,14 +136,14 @@ const Management = () => {
       description: task.contentStr,
     });
     setModalOpen(true);
-    document.body.style.overflow = 'hidden'; // 배경 스크롤 막기
+    document.body.style.overflow = 'hidden';
   };
 
   const closeModal = () => {
     setModalOpen(false);
     setNewTaskModalOpen(false);
-    setConfirmDelete(false); // 삭제 확인 초기화
-    document.body.style.overflow = 'auto'; // 배경 스크롤 허용
+    setConfirmDelete(false);
+    document.body.style.overflow = 'auto';
   };
 
   const confirmDeleteTask = () => {
@@ -157,7 +156,7 @@ const Management = () => {
     const [task] = newTasks[employee][status].splice(index, 1);
 
     try {
-      await axios.delete(`http://localhost:3000/ticket/${task.ticketIdx}`); // 서버에 DELETE 요청
+      await axios.delete(`http://localhost:3000/ticket/${task.ticketIdx}`);
       setTasks(newTasks);
       closeModal();
     } catch (error) {
@@ -192,7 +191,7 @@ const Management = () => {
     };
 
     try {
-      await axios.put(`http://localhost:3000/ticket/${tftask.TICKET_IDX}`, tftask); // 서버에 PUT 요청
+      await axios.put(`http://localhost:3000/ticket/${tftask.TICKET_IDX}`, tftask);
       setTasks(newTasks);
       closeModal();
     } catch (error) {
@@ -211,7 +210,7 @@ const Management = () => {
       description: '',
     });
     setNewTaskModalOpen(true);
-    document.body.style.overflow = 'hidden'; // 배경 스크롤 막기
+    document.body.style.overflow = 'hidden';
   };
 
   const registerNewTask = async () => {
@@ -242,10 +241,20 @@ const Management = () => {
         const response = await axios.post('http://localhost:3000/ticket', tfnewTask);
         const createdTask = {
           ...tfnewTask,
-          TICKET_IDX: response.data.TICKET_IDX // 서버에서 반환한 새 티켓 ID
+          TICKET_IDX: response.data.TICKET_IDX
         };
-          addTask(employee, status, createdTask);
-          closeModal();
+
+        const updatedTicketData = await axios.get('http://localhost:3000/ticket');
+        const transformedData = transformData(updatedTicketData.data);
+        setTicketData(transformedData);
+
+        const employeeTasks = mapTicketsToTasks(selectedEmployee);
+        setTasks(prevTasks => ({
+          ...prevTasks,
+          [selectedEmployee.USER_NM]: employeeTasks,
+        }));
+
+        closeModal();
       } catch (error) {
           console.error('Failed to create new task:', error);
       }
