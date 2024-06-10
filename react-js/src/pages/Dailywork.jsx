@@ -36,20 +36,20 @@ const Dailywork = () => {
         fetchData();
     }, [selectedDate]); // selectedDate가 변경될 때마다 fetchData 호출
 
-    // useEffect(() => {
-    //     // 비동기적으로 employeeData 가져오기
-    //     const fetchEmployeeData = async () => {
-    //         const response = await fetch('/data/employeeData.json');
-    //         const result = await response.json();
-    //         const info = {};
-    //         result.forEach(emp => {
-    //             info[emp.name] = { department: emp.department, phone: emp.phone };
-    //         });
-    //         setEmployeeInfo(info);
-    //     };
+    useEffect(() => {
+        // 비동기적으로 employeeData 가져오기
+        const fetchEmployeeData = async () => {
+            const response = await axios.get('http://localhost:3000/employee');
+            const result = await response.data;
+            const info = {};
+            result.forEach(emp => {
+                info[emp.USER_NM] = { department: emp.DEPT_NM, phone: emp.HP_NUM };
+            });
+            setEmployeeInfo(info);
+        };
 
-    //     fetchEmployeeData();
-    // }, []);
+        fetchEmployeeData();
+    }, []);
 
     const handleDateChange = (e) => {
         const newDate = e.target.value;

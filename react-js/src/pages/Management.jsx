@@ -114,8 +114,8 @@ const Management = () => {
     }
   };
 
-  const addTask = (employee, status, task) => {
-    setTasks(prevTasks => ({
+  const addTask = async (employee, status, task) => {
+    await setTasks(prevTasks => ({
       ...prevTasks,
       [employee]: {
         ...prevTasks[employee],
@@ -232,28 +232,14 @@ const Management = () => {
         TITLE_STR: newTask.titleStr,
         DATE_ST_YMD: newTask.dateStYmd,
         DATE_END_YMD: newTask.dateEndYmd,
-        CONTENT_STR: newTask.contentStr,
         MANAGER_STR: newTask.managerStr,
+        CONTENT_STR: newTask.contentStr,
         STATUS_FLG: newTask.statusFlg
       };
 
       try {
-        const response = await axios.post('http://localhost:3000/ticket', tfnewTask);
-        const createdTask = {
-          ...tfnewTask,
-          TICKET_IDX: response.data.TICKET_IDX
-        };
-
-        const updatedTicketData = await axios.get('http://localhost:3000/ticket');
-        const transformedData = transformData(updatedTicketData.data);
-        setTicketData(transformedData);
-
-        const employeeTasks = mapTicketsToTasks(selectedEmployee);
-        setTasks(prevTasks => ({
-          ...prevTasks,
-          [selectedEmployee.USER_NM]: employeeTasks,
-        }));
-
+        await axios.post('http://localhost:3000/ticket', tfnewTask);
+        await addTask(employee, status, newTask);
         closeModal();
       } catch (error) {
           console.error('Failed to create new task:', error);
