@@ -104,7 +104,7 @@ th, td {
     background-color: white;
     padding: 20px;
     border-radius: 10px;
-    width: 600px;
+    width: 800px; /* 너비를 800px로 확대 */
     max-width: 90%;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
