@@ -1,25 +1,31 @@
 // TicketKeywordTable.jsx
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
-const TicketKeywordTable = () => {
+const TicketKeywordTable = ({ userKeyCd, dateYmd }) => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    fetch('/data/chartData.json')
-      .then(response => response.json())
-      .then(data => setData(data));
-  }, []);
+    if (userKeyCd && dateYmd) {
+      axios.get(`http://localhost:3000/group/report`, { params: { USER_KEY_CD: userKeyCd, DATE_YMD: dateYmd } })
+        .then(response => setData(response.data))
+        .catch(error => console.error('Error fetching data:', error));
+    } else {
+      console.log('userKeyCd 또는 dateYmd가 정의되지 않았습니다. API 호출 건너뜀.');
+    }
+  }, [userKeyCd, dateYmd]);
+
 
   // 데이터 처리
   const processData = (data) => {
     const filteredData = data
-      .filter(item => item['Mean Similarity'] > 0.03)
-      .sort((a, b) => b['Mean Similarity'] - a['Mean Similarity'])
+      .filter(item => item.MeanSimilarity > 0.03)
+      .sort((a, b) => b.MeanSimilarity - a.MeanSimilarity)
       .reduce((acc, item) => {
         if (!acc[item.Ticket]) {
           acc[item.Ticket] = [];
         }
-        acc[item.Ticket].push(item.Representation[0]);
+        acc[item.Ticket].push(item.Representation.split(',')[0]+" ");
         return acc;
       }, {});
 
@@ -27,7 +33,7 @@ const TicketKeywordTable = () => {
       .sort(([a], [b]) => b - a) // 티켓을 내림차순으로 정렬
       .map(([ticket, representations]) => ({
         ticket,
-        Representation: representations.join(', ')
+        Representation: representations
       }));
   };
 

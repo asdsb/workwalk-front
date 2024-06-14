@@ -216,6 +216,7 @@ const Management = () => {
   const registerNewTask = async () => {
     const { employee } = currentTask;
     const { status } = modalContent;
+
     if (isFormValid) {
       const selectedEmployee = employeeData.find(emp => emp.USER_NM === employee);
       const newTask = {
@@ -226,6 +227,7 @@ const Management = () => {
         contentStr: modalContent.description,
         statusFlg: status === 'notStarted' ? 0 : status === 'inProgress' ? 1 : 2,
       };
+
 
       const tfnewTask = {
         USER_KEY_CD: selectedEmployee.USER_KEY_CD,
@@ -238,7 +240,9 @@ const Management = () => {
       };
 
       try {
-        await axios.post('http://localhost:3000/ticket', tfnewTask);
+        const response = await axios.post('http://localhost:3000/ticket', tfnewTask);
+        const savedTask = response.data;
+        newTask.ticketIdx = savedTask.TICKET_IDX; // API가 반환한 새 티켓의 인덱스 설정
         await addTask(employee, status, newTask);
         closeModal();
       } catch (error) {

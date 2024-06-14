@@ -1,9 +1,7 @@
-// Dailywork.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ChartComponent from '../components/ChartComponent';
 import TicketKeywordTable from '../components/TicketKeywordTable';
-import DynamicImageComponent from '../components/DynamicImageComponent';
 
 const Dailywork = () => {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -21,10 +19,10 @@ const Dailywork = () => {
     return data.map((item) => ({
       date: item.DATE_YMD,
       nickname: item.Employee.USER_NM, // fk로 이름 불러오기
+      userKeyCd: item.USER_KEY_CD, // 추가된 USER_KEY_CD
       status: item.FIN_FLG === 0 ? '근무 중' : '퇴근', // 업무 상태에 맞게 글로 변환
       totalTime: item.TIME_DT,
       reportStatus: item.FIN_FLG === 0 ? '수집 중' : '생성 완료', // 0이면 수집 중 1이면 생성 완료
-      imageUrl: item.imageUrl, // 이미지 URL 추가
     }));
   };
 
@@ -47,7 +45,7 @@ const Dailywork = () => {
       const result = await response.data;
       const info = {};
       result.forEach((emp) => {
-        info[emp.USER_NM] = { department: emp.DEPT_NM, phone: emp.HP_NUM };
+        info[emp.USER_NM] = { userKeyCd: emp.USER_KEY_CD, department: emp.DEPT_NM, phone: emp.HP_NUM };
       });
       setEmployeeInfo(info);
     };
@@ -77,9 +75,11 @@ const Dailywork = () => {
     if (employee.reportStatus === '생성 완료') {
       setReportData({
         ...employee,
+        // userKeyCd: employeeInfo[employee.nickname]?.userKeyCd || '',
         department: employeeInfo[employee.nickname]?.department || '',
         phone: employeeInfo[employee.nickname]?.phone || '',
       }); // 선택된 보고서 데이터를 설정
+      console.log("reportData.userKeyCd:", reportData.userKeyCd);
       setModalOpen(true);
     }
   };
@@ -96,7 +96,7 @@ const Dailywork = () => {
         return direction === 'ascending' ? -1 : 1;
       }
       if (a[key] > b[key]) {
-        return direction === 'ascending' ? 1 : -1;
+        return direction === 'ascending' ? 1 : 0;
       }
       return 0;
     });
@@ -259,7 +259,7 @@ const Dailywork = () => {
                   </tr>
                   <tr>
                     <td colSpan="4" className="section-header">
-                    근무시간 브라우저 활동과 업무 유사도 분석
+                      근무시간 브라우저 활동과 업무 유사도 분석
                     </td>
                   </tr>
                   <tr>
@@ -268,8 +268,8 @@ const Dailywork = () => {
                         <DynamicImageComponent />
                       </div> */}
                       <h4>1. 업무 별 군집과 유사도</h4>
-                      <ChartComponent />
-                      <TicketKeywordTable/>
+                      <ChartComponent userKeyCd={reportData.userKeyCd} dateYmd={reportData.date} />
+                      <TicketKeywordTable userKeyCd={reportData.userKeyCd} dateYmd={reportData.date} />
                     </td>
                   </tr>
                 </tbody>

@@ -3,42 +3,43 @@ import Chart from 'chart.js/auto';
 import { MatrixController, MatrixElement } from 'chartjs-chart-matrix';
 import 'chartjs-adapter-date-fns';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import axios from 'axios';
 
 Chart.register(MatrixController, MatrixElement, ChartDataLabels);
 
-const ChartComponent = () => {
+const ChartComponent = ({ userKeyCd, dateYmd }) => {
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    fetch('/data/chartData.json')
-      .then(response => response.json())
-      .then(data => setData(data));
-  }, []);
+    if (userKeyCd && dateYmd) {
+      axios.get(`http://localhost:3000/group/report`, { params: { USER_KEY_CD: userKeyCd, DATE_YMD: dateYmd } })
+        .then(response => setData(response.data))
+        .catch(error => console.error('Error fetching data:', error));
+    } else {
+      console.log('userKeyCd 또는 dateYmd가 정의되지 않았습니다. API 호출 건너뜀.');
+    }
+  }, [userKeyCd, dateYmd]);
 
   useEffect(() => {
     if (!data.length) return;
 
     const ctx = chartRef.current.getContext('2d');
 
-    // 행과 열을 정렬합니다.
     const tickets = [...new Set(data.map(item => item.Ticket))];
     const clusters = [...new Set(data.map(item => item.Cluster))];
 
-    // 클러스터별 색상 생성
     const clusterColors = clusters.map(() => {
       return [Math.floor(Math.random() * 200) + 55, Math.floor(Math.random() * 200) + 55, Math.floor(Math.random() * 200) + 55];
     });
 
-    // 히트맵 데이터를 생성합니다.
     const matrixData = data.map(item => ({
       x: item.Cluster,
       y: item.Ticket,
-      v: item['Mean Similarity'],
+      v: item.MeanSimilarity,
     }));
 
-    // 차트 데이터를 생성합니다.
     const chartData = {
       datasets: [{
         label: 'Mean Similarity',
@@ -47,7 +48,7 @@ const ChartComponent = () => {
           const value = context.dataset.data[context.dataIndex].v;
           const clusterIndex = clusters.indexOf(context.dataset.data[context.dataIndex].x);
           const [r, g, b] = clusterColors[clusterIndex];
-          const alpha = (value - Math.min(...data.map(d => d['Mean Similarity']))) / (Math.max(...data.map(d => d['Mean Similarity'])) - Math.min(...data.map(d => d['Mean Similarity'])));
+          const alpha = (value - Math.min(...data.map(d => d.MeanSimilarity))) / (Math.max(...data.map(d => d.MeanSimilarity)) - Math.min(...data.map(d => d.MeanSimilarity)));
           return `rgba(${r}, ${g}, ${b}, ${alpha})`;
         },
         borderWidth: 0,
@@ -56,7 +57,6 @@ const ChartComponent = () => {
       }]
     };
 
-    // 차트 옵션을 설정합니다.
     const options = {
       responsive: true,
       scales: {
@@ -72,14 +72,13 @@ const ChartComponent = () => {
             }
           },
           grid: {
-            display: false // x축 눈금선 숨기기
+            display: false
           },
           ticks: {
             autoSkip: false,
             maxRotation: 0,
             minRotation: 0,
-            
-            padding: 30, // 좌우 간격 조절
+            padding: 30,
             font: {
               size: 14,
               weight: 'bold'
@@ -98,11 +97,11 @@ const ChartComponent = () => {
             }
           },
           grid: {
-            display: false // y축 눈금선 숨기기
+            display: false
           },
           ticks: {
             autoSkip: false,
-            padding: 10, // 상하 간격 조절
+            padding: 10,
             font: {
               size: 14,
               weight: 'bold'
@@ -124,13 +123,11 @@ const ChartComponent = () => {
           }
         },
         tooltip: {
-          enabled: false // Disable tooltips
+          enabled: false
         },
         datalabels: {
           display: true,
-          formatter: (value, context) => {
-            return `${(value.v * 100).toFixed(0)}`;
-          },
+          formatter: (value, context) => `${(value.v * 100).toFixed(0)}`,
           color: '#000',
           font: {
             size: 12,
@@ -140,19 +137,16 @@ const ChartComponent = () => {
       }
     };
 
-    // 기존 차트 인스턴스가 존재하면 파괴합니다.
     if (chartInstance.current) {
       chartInstance.current.destroy();
     }
 
-    // 차트를 생성합니다.
     chartInstance.current = new Chart(ctx, {
       type: 'matrix',
       data: chartData,
       options: options,
     });
 
-    // 컴포넌트가 언마운트될 때 차트를 파괴합니다.
     return () => {
       if (chartInstance.current) {
         chartInstance.current.destroy();
