@@ -1,6 +1,9 @@
+// Dailywork.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ChartComponent from '../components/ChartComponent';
+import TicketKeywordTable from '../components/TicketKeywordTable';
+import DynamicImageComponent from '../components/DynamicImageComponent';
 
 const Dailywork = () => {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -229,42 +232,49 @@ const Dailywork = () => {
         <div className="dailywork-modal-overlay">
           <div className="dailywork-modal">
             <h3>업무 보고서</h3>
-            <table>
-              <tbody>
-                <tr>
-                  <td>이름</td>
-                  <td>{reportData.nickname}</td>
-                  <td>부서</td>
-                  <td>{reportData.department}</td>
-                </tr>
-                <tr>
-                  <td>휴대전화</td>
-                  <td>{reportData.phone}</td>
-                  <td>작성일</td>
-                  <td>{reportData.date}</td>
-                </tr>
+            <div className="modal-content">
+              <table className="modal-table">
+                <tbody>
+                  <tr>
+                    <td>이름</td>
+                    <td>{reportData.nickname}</td>
+                    <td>부서</td>
+                    <td>{reportData.department}</td>
+                  </tr>
+                  <tr>
+                    <td>휴대전화</td>
+                    <td>{reportData.phone}</td>
+                    <td>작성일</td>
+                    <td>{reportData.date}</td>
+                  </tr>
 
-                <tr>
-                  <td colSpan="4">{reportData.task}</td>
-                </tr>
-                <tr>
-                  <td>업무 시간</td>
-                  <td>{reportData.totalTime}</td>
-                  <td>평가 점수</td>
-                  <td>{reportData.score}</td>
-                </tr>
-                <tr>
-                  <td colSpan="4" className="section-header">
-                    담당 업무
-                  </td>
-                </tr>
-                <tr>
-                  <td colSpan="4">
-                    <ChartComponent />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  <tr>
+                    <td colSpan="4">{reportData.task}</td>
+                  </tr>
+                  <tr>
+                    <td>업무 시간</td>
+                    <td>{reportData.totalTime}</td>
+                    <td>평가 점수</td>
+                    <td>{reportData.score}</td>
+                  </tr>
+                  <tr>
+                    <td colSpan="4" className="section-header">
+                    근무시간 브라우저 활동과 업무 유사도 분석
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colSpan="4">
+                      {/* <div className='DynamicImageComponent'>
+                        <DynamicImageComponent />
+                      </div> */}
+                      <h4>1. 업무 별 군집과 유사도</h4>
+                      <ChartComponent />
+                      <TicketKeywordTable/>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
             <button onClick={() => setModalOpen(false)}>닫기</button>
           </div>
         </div>

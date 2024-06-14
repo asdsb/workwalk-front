@@ -1,10 +1,10 @@
-// ChartComponent.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import { MatrixController, MatrixElement } from 'chartjs-chart-matrix';
 import 'chartjs-adapter-date-fns';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-Chart.register(MatrixController, MatrixElement);
+Chart.register(MatrixController, MatrixElement, ChartDataLabels);
 
 const ChartComponent = () => {
   const chartRef = useRef(null);
@@ -65,7 +65,7 @@ const ChartComponent = () => {
           labels: clusters,
           title: {
             display: true,
-            text: 'Cluster',
+            text: '군집',
             font: {
               size: 14,
               weight: 'bold'
@@ -91,7 +91,7 @@ const ChartComponent = () => {
           labels: tickets,
           title: {
             display: true,
-            text: 'Ticket',
+            text: '업무',
             font: {
               size: 14,
               weight: 'bold'
@@ -112,18 +112,11 @@ const ChartComponent = () => {
       },
       plugins: {
         legend: {
-          position: 'top',
-          display:false,
-          labels: {
-            font: {
-              size: 14,
-              weight: 'bold'
-            }
-          }
+          display: false
         },
         title: {
-          display: true,
-          padding:40,
+          display: false,
+          padding: 40,
           text: 'Mean Similarity by Ticket and Cluster',
           font: {
             size: 16,
@@ -131,11 +124,17 @@ const ChartComponent = () => {
           }
         },
         tooltip: {
-          callbacks: {
-            label: function(context) {
-              const value = context.dataset.data[context.dataIndex].v;
-              return `${(value * 100).toFixed(2)}%`;
-            }
+          enabled: false // Disable tooltips
+        },
+        datalabels: {
+          display: true,
+          formatter: (value, context) => {
+            return `${(value.v * 100).toFixed(0)}`;
+          },
+          color: '#000',
+          font: {
+            size: 12,
+            weight: 'bold'
           }
         }
       }
