@@ -1,4 +1,3 @@
-// TicketKeywordTable.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
@@ -15,7 +14,6 @@ const TicketKeywordTable = ({ userKeyCd, dateYmd }) => {
     }
   }, [userKeyCd, dateYmd]);
 
-
   // 데이터 처리
   const processData = (data) => {
     const filteredData = data
@@ -23,18 +21,18 @@ const TicketKeywordTable = ({ userKeyCd, dateYmd }) => {
       .sort((a, b) => b.MeanSimilarity - a.MeanSimilarity)
       .reduce((acc, item) => {
         if (!acc[item.Ticket]) {
-          acc[item.Ticket] = [];
+          acc[item.Ticket] = {
+            ticket: item.Ticket,
+            TicketName: item.TicketName,
+            Representation: []
+          };
         }
-        acc[item.Ticket].push(item.Representation.split(',')[0]+" ");
+        acc[item.Ticket].Representation.push(item.Representation.split(',')[0]);
         return acc;
       }, {});
 
-    return Object.entries(filteredData)
-      .sort(([a], [b]) => b - a) // 티켓을 내림차순으로 정렬
-      .map(([ticket, representations]) => ({
-        ticket,
-        Representation: representations
-      }));
+    return Object.values(filteredData)
+      .sort((a, b) => b.ticket - a.ticket); // 티켓을 내림차순으로 정렬
   };
 
   const processedData = processData(data);
@@ -52,8 +50,8 @@ const TicketKeywordTable = ({ userKeyCd, dateYmd }) => {
         <tbody>
           {processedData.map(row => (
             <tr key={row.ticket}>
-              <td>{row.ticket}</td>
-              <td>{row.Representation}</td>
+              <td>{row.TicketName}</td>
+              <td>{row.Representation.join(', ')}</td>
             </tr>
           ))}
         </tbody>

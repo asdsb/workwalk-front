@@ -116,6 +116,18 @@ const Dailywork = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
+  // 시간 차이를 계산하는 함수
+  const calculateWorkTime = (startTime) => {
+    const [startHours, startMinutes] = startTime.split(':').map(Number);
+    const startDate = new Date();
+    startDate.setHours(startHours, startMinutes, 0, 0);
+    const now = new Date();
+    const diffMs = now - startDate; // 차이를 밀리초로 계산
+    const diffHrs = Math.floor(diffMs / 3600000); // 시간으로 변환
+    const diffMins = Math.floor((diffMs % 3600000) / 60000); // 분으로 변환
+    return `${diffHrs}:${diffMins}`;
+  };
+
   return (
     <div className="dailywork-container">
       <h2>일별 근무 현황</h2>
@@ -190,7 +202,11 @@ const Dailywork = () => {
                   <tr key={index}>
                     <td>{employee.nickname}</td>
                     <td>{employee.status}</td>
-                    <td>{employee.totalTime}</td>
+                    <td>
+                      {employee.reportStatus === '수집 중'
+                        ? calculateWorkTime(employee.totalTime)
+                        : employee.totalTime}
+                    </td>
                     <td>
                       <button
                         className={`status-button ${
