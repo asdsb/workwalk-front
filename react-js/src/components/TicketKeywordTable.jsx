@@ -17,22 +17,33 @@ const TicketKeywordTable = ({ userKeyCd, dateYmd }) => {
   // 데이터 처리
   const processData = (data) => {
     const filteredData = data
-      .filter(item => item.MeanSimilarity > 0.03)
-      .sort((a, b) => b.MeanSimilarity - a.MeanSimilarity)
-      .reduce((acc, item) => {
-        if (!acc[item.Ticket]) {
-          acc[item.Ticket] = {
-            ticket: item.Ticket,
-            TicketName: item.TicketName,
-            Representation: []
-          };
-        }
-        acc[item.Ticket].Representation.push(item.Representation.split(',')[0]);
-        return acc;
-      }, {});
+      .filter(item => item.MeanSimilarity > 0.03);
 
-    return Object.values(filteredData)
-      .sort((a, b) => b.ticket - a.ticket); // 티켓을 내림차순으로 정렬
+    // 각 업무(Ticket)별로 그룹핑
+    const groupedData = filteredData.reduce((acc, item) => {
+      if (!acc[item.Ticket]) {
+        acc[item.Ticket] = [];
+      }
+      acc[item.Ticket].push(item);
+      return acc;
+    }, {});
+
+    // 각 업무에서 가장 높은 MeanSimilarity를 가진 군집의 Representation들을 선택
+    const processedData = Object.values(groupedData).map(items => {
+      const highestCluster = items.reduce((maxItem, item) => 
+        item.MeanSimilarity > maxItem.MeanSimilarity ? item : maxItem, items[0]);
+
+      return {
+        ticket: highestCluster.Ticket,
+        TicketName: highestCluster.TicketName,
+        Representation: items
+          .filter(item => item.Cluster === highestCluster.Cluster)
+          .map(item => item.Representation)
+      };
+    });
+
+    // 티켓을 내림차순으로 정렬
+    return processedData.sort((a, b) => b.ticket - a.ticket);
   };
 
   const processedData = processData(data);
@@ -51,7 +62,7 @@ const TicketKeywordTable = ({ userKeyCd, dateYmd }) => {
           {processedData.map(row => (
             <tr key={row.ticket}>
               <td>{row.TicketName}</td>
-              <td>{row.Representation.join(', ')}</td>
+              <td>{row.Representation}</td>
             </tr>
           ))}
         </tbody>

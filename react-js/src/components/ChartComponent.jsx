@@ -27,7 +27,7 @@ const ChartComponent = ({ userKeyCd, dateYmd }) => {
 
     const ctx = chartRef.current.getContext('2d');
 
-    const tickets = [...new Set(data.map(item => item.Ticket))];
+    const tickets = [...new Set(data.map(item => item.TicketName))];
     const clusters = [...new Set(data.map(item => item.Cluster))];
 
     const clusterColors = clusters.map(() => {
@@ -36,7 +36,7 @@ const ChartComponent = ({ userKeyCd, dateYmd }) => {
 
     const matrixData = data.map(item => ({
       x: item.Cluster,
-      y: item.Ticket,
+      y: item.TicketName,
       v: item.MeanSimilarity,
     }));
 
